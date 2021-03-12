@@ -10,6 +10,7 @@ contract AuctionBlock {
     // absolute unix timestamps (seconds since 1970-01-01)
     // or time periods in seconds.
     address payable public beneficiary;
+    uint public auctionStartTime;
     uint public auctionEndTime;
 
     // Current state of the auction.
@@ -33,15 +34,21 @@ contract AuctionBlock {
     // confirm a transaction.
 
     /// Create a simple auction with `_duration`
-    /// seconds bidding time on behalf of the
-    /// beneficiary address `_beneficiary`.
+    /// seconds that the auction is open from the
+    /// `_auctionStartTime` on behalf of the
+    /// beneficiary address `_beneficiary` that 
+    /// starts at the `_startingBid` and requires
+    /// a certain amount of `_reputation`.
     constructor(
         uint _duration,
-        uint _auctionStartTime;
-        address payable _beneficiary
+        uint _auctionStartTime,
+        address payable _beneficiary,
+        uint _startingBid
     ) public {
         beneficiary = _beneficiary;
-        auctionEndTime = _auctionStartTime + _duration;
+        auctionStartTime = _auctionStartTime;
+        auctionEndTime = auctionStartTime + _duration;
+        highestBid = _startingBid;
     }
 
     /// Bid on the auction with the value sent
@@ -54,6 +61,13 @@ contract AuctionBlock {
         // the transaction. The keyword payable
         // is required for the function to
         // be able to receive Ether.
+
+        //Revert the call if the bidding 
+        //period hasn't started yet
+        require(
+            now >= auctionStartTime,
+            "Auction has not yet begun."
+        );
 
         // Revert the call if the bidding
         // period is over.
